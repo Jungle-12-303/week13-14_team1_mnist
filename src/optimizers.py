@@ -29,17 +29,17 @@ class Adam:
     MNIST 과제에서는 SGD보다 빠르게 손실이 내려가는지 비교해 볼 수 있습니다.
     """
 
-    def __init__(self, lr=0.001, beta1=0.9, beta2=0.999, eps=1e-8):
+    def __init__(self, lr=0.001):
         """Args: lr: Adam 업데이트의 기본 학습률."""
         self.lr = lr
-        self.beta1 = beta1
-        self.beta2 = beta2
-        self.eps = eps
         self.m, self.v = {}, {}
         self.t = 0
 
     def update(self, params, grads):
         """Adam 공식에 따라 params dict의 모든 파라미터를 갱신합니다."""
+        beta1 = 0.9
+        beta2 = 0.999
+        eps = 1e-7
         self.t += 1
 
         for key in params:
@@ -48,9 +48,9 @@ class Adam:
                 self.v[key] = np.zeros_like(params[key])
 
             grad = grads[key]
-            self.m[key] = self.beta1 * self.m[key] + (1 - self.beta1) * grad
-            self.v[key] = self.beta2 * self.v[key] + (1 - self.beta2) * (grad ** 2)
+            self.m[key] = beta1 * self.m[key] + (1 - beta1) * grad
+            self.v[key] = beta2 * self.v[key] + (1 - beta2) * (grad ** 2)
 
-            m_hat = self.m[key] / (1 - self.beta1 ** self.t)
-            v_hat = self.v[key] / (1 - self.beta2 ** self.t)
-            params[key] -= self.lr * m_hat / (np.sqrt(v_hat) + self.eps)
+            m_hat = self.m[key] / (1 - beta1 ** self.t)
+            v_hat = self.v[key] / (1 - beta2 ** self.t)
+            params[key] -= self.lr * m_hat / (np.sqrt(v_hat) + eps)

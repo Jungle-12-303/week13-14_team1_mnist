@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 """학습 루프, 평가, 시각화 함수 모음."""
 
+import matplotlib.pyplot as plt
 import numpy as np
-
-from losses import cross_entropy_loss
 
 
 def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128):
@@ -30,14 +29,8 @@ def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128):
             x_batch = x_train[batch_indices]
             y_batch = y_train[batch_indices]
 
-            y_pred = model.forward(x_batch, train=True)
-            loss = cross_entropy_loss(y_pred, y_batch)
-
-            dout = y_pred.copy()
-            dout[np.arange(y_batch.shape[0]), y_batch] -= 1
-            dout /= y_batch.shape[0]
-
-            model.backward(dout)
+            loss = model.loss(x_batch, y_batch)
+            model.backward()
             optimizer.update(model.params, model.grads)
 
             epoch_loss += loss
@@ -58,8 +51,6 @@ def evaluate(model, x, y):
 
 def plot_loss_history(loss_history):
     """손실 커브 그래프."""
-    import matplotlib.pyplot as plt
-
     plt.plot(loss_history)
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
