@@ -19,12 +19,15 @@ class Affine:
     MNIST에서는 784개 픽셀 입력을 은닉층/출력층 차원으로 선형 변환하는 역할을 합니다.
     """
 
-    def __init__(self, W, b):
+    def __init__(self, W: np.ndarray, b: np.ndarray):
         """가중치 W와 편향 b를 외부 params dict와 같은 배열 객체로 공유합니다."""
         self.W = W
         self.b = b
+        self.x = None
+        self.dW = None
+        self.db = None
 
-    def forward(self, x):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Args:
             x: (batch_size, input_dim)
@@ -33,6 +36,10 @@ class Affine:
             (batch_size, output_dim)
         """
         # TODO: backward에서 사용할 입력 x를 저장하고 x @ W + b를 반환하세요.
+        # np.dot, @ 차이점: np.dot은 2차원 배열에서 가능, @는 다차원 배열에서 가능
+        self.x = x
+        out = self.x @ self.W + self.b
+        return out
         raise NotImplementedError("Affine.forward를 구현하세요.")
 
     def backward(self, dout):
@@ -48,6 +55,10 @@ class Affine:
         """
         # TODO: self.dW, self.db, dx를 계산하세요.
         # 힌트: dW = x.T @ dout, db = batch 방향 합, dx = dout @ W.T
+        self.dW = self.x.T @ dout
+        self.db = np.sum(dout, axis=0)
+        dx = dout @ self.W.T
+        return dx
         raise NotImplementedError("Affine.backward를 구현하세요.")
 
 
