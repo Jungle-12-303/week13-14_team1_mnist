@@ -17,19 +17,24 @@ class ReLU:
     은닉층에서 음수 값은 0으로 막고, 양수 값은 그대로 통과시킵니다.
     forward에서 만든 mask는 backward 때 "어느 위치로 gradient를 흘릴지" 결정하는 데 사용됩니다.
     """
+    def __init__(self):
+        self.mask = None
 
-    def forward(self, x):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Args:
-            x: 임의 shape의 입력 배열
+            x: 임의 shape의 입력 배열 -> x배열 요소 전체에 ReLU 적용해야 됨
 
         Returns:
             x와 같은 shape. x > 0인 위치만 원래 값을 유지합니다.
         """
         # TODO: x > 0 위치를 self.mask에 저장하고, 음수/0 위치는 0으로 바꾸세요.
+        self.mask = x > 0
+        return x * self.mask
         raise NotImplementedError("ReLU.forward를 구현하세요.")
 
-    def backward(self, dout):
+
+    def backward(self, dout: np.ndarray) -> np.ndarray:
         """
         Args:
             dout: 다음 층에서 넘어온 gradient
@@ -38,6 +43,8 @@ class ReLU:
             ReLU 입력 x에 대한 gradient. forward 때 x <= 0이었던 위치는 0입니다.
         """
         # TODO: forward에서 저장한 self.mask를 이용해 gradient가 흐를 위치만 남기세요.
+        # 0보다 큰 지점의 ReUL함수 미분 값은 1
+        return dout * self.mask
         raise NotImplementedError("ReLU.backward를 구현하세요.")
 
 
@@ -49,7 +56,7 @@ class Softmax:
     exp 계산 전에 행별 최댓값을 빼면 큰 숫자에서 overflow가 나는 것을 줄일 수 있습니다.
     """
 
-    def forward(self, x):
+    def forward(self, x: np.ndarray) -> np.ndarray:
         """
         Args:
             x: (batch_size, num_classes) 로짓
@@ -59,12 +66,16 @@ class Softmax:
         """
         # TODO: 수치 안정성을 위해 row별 max를 뺀 뒤 softmax 확률을 계산하세요.
         # 힌트: np.max(..., axis=1, keepdims=True), np.exp, np.sum을 사용합니다.
+        x_exp = np.exp(x - np.max(x, axis=1, keepdims=True))
+        return x_exp / x_exp.sum(axis=1, keepdims=True)
+
         raise NotImplementedError("Softmax.forward를 구현하세요.")
 
-    def backward(self, dout):
+    def backward(self, dout: np.ndarray) -> np.ndarray:
         """
         Softmax와 Cross Entropy를 함께 미분한 gradient를 train()에서 직접 만들기 때문에
         여기서는 받은 gradient를 그대로 통과시킵니다.
         """
         # TODO: train()에서 만든 gradient를 그대로 반환하세요.
+        return dout
         raise NotImplementedError("Softmax.backward를 구현하세요.")
