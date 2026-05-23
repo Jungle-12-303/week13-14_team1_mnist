@@ -40,7 +40,6 @@ class ReLU:
         Returns:
             ReLU 입력 x에 대한 gradient. forward 때 x <= 0이었던 위치는 0입니다.
         """
-        # 0보다 큰 지점의 ReUL함수 미분 값은 1
         return dout * self.mask
 
 
