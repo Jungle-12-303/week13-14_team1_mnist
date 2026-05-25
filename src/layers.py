@@ -84,7 +84,12 @@ class BatchNorm:
         self.running_var = np.zeros_like(beta)
         self.eps = 1e-7
 
-    def forward(self, x, train=True):
+        self.dbeta = np.zeros_like(beta)
+        self.dgamma = np.zeros_like(beta)
+        self.x_hat = np.zeros_like(beta)
+
+
+    def forward(self, x: np.ndarray, train=True) -> np.ndarray:
         """
         Args:
             x: (batch_size, feature_dim)
@@ -94,7 +99,21 @@ class BatchNorm:
             정규화 후 gamma, beta가 적용된 배열
         """
         # TODO: train=True에서는 batch mean/var로 정규화하고 running 통계를 갱신하세요.
+        batch_mean = np.mean(x, axis=0)
+        batch_var = np.var(x, axis=0)
+
+        if train == True:
+
+            self.x_hat = (x - batch_mean) / np.sqrt(batch_var +self.eps)
+
+            self.running_mean = self.running_mean * self.momentum + batch_mean * (1 - self.momentum)
+            self.running_var = self.running_var * self.momentum + batch_var * (1 - self.momentum)
+
         # TODO: train=False에서는 running_mean/running_var를 사용하세요.
+        else:
+            self.x_hat = (x - self.running_mean) / np.sqrt(self.running_var + self.eps)
+
+        return self.x_hat * self.gamma + self.beta
         raise NotImplementedError("BatchNorm.forward를 구현하세요.")
 
     def backward(self, dout):
@@ -109,6 +128,10 @@ class BatchNorm:
         """
         # TODO: self.dbeta, self.dgamma, dx를 계산하세요.
         # 힌트: 먼저 dbeta와 dgamma shape가 beta/gamma와 같은지 확인합니다.
+        # dgamma = x_hat, dbeta = 1, dx = gamma
+        self.dbeta = dout * np.sum(dout, axis=0)
+        self.dgamma = dout * np.sum(dout * self.x_hat, axis=0)
+        return dout * self.gamma
         raise NotImplementedError("BatchNorm.backward를 구현하세요.")
 
 
