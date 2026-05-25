@@ -31,14 +31,39 @@ class Adam:
     MNIST 과제에서는 SGD보다 빠르게 손실이 내려가는지 비교해 볼 수 있습니다.
     """
 
-    def __init__(self, lr=0.001):
-        """Args: lr: Adam 업데이트의 기본 학습률."""
+    def __init__(self, lr=0.001, beta1=0.9, beta2=0.999, eps=1e-8):
+        """
+        Args: 
+            lr: Adam 업데이트의 기본 학습률.
+            beta1: 1차 모멘텀(m)용 감쇠율.
+            beta2: 2차 모멘텀(v)용 감쇠율.
+            eps: 0으로 나누는 것을 방지하기 위한 작은 값.
+        """
         self.lr = lr
+        self.beta1 = beta1
+        self.beta2 = beta2
+        self.eps = eps
+        
         self.m, self.v = {}, {}
         self.t = 0
 
     def update(self, params, grads):
         """Adam 공식에 따라 params dict의 모든 파라미터를 갱신합니다."""
-        # TODO: m, v 이동평균과 bias correction을 사용해 params를 업데이트하세요.
+        self.t += 1
         
-        #raise NotImplementedError("Adam.update를 구현하세요.")
+        for key in params.keys():
+            # 최초 업데이트 시 m과 v를 파라미터와 동일한 형태의 0 배열로 초기화
+            if key not in self.m:
+                self.m[key] = np.zeros_like(params[key])
+                self.v[key] = np.zeros_like(params[key])
+            
+            # 1. Moving average 갱신
+            self.m[key] = self.beta1 * self.m[key] + (1 - self.beta1) * grads[key]
+            self.v[key] = self.beta2 * self.v[key] + (1 - self.beta2) * (grads[key] ** 2)
+            
+            # 2. Bias correction 적용
+            m_hat = self.m[key] / (1 - self.beta1 ** self.t)
+            v_hat = self.v[key] / (1 - self.beta2 ** self.t)
+            
+            # 3. Parameter 업데이트
+            params[key] -= self.lr * m_hat / (np.sqrt(v_hat) + self.eps)
