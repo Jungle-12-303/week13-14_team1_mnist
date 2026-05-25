@@ -35,56 +35,30 @@ class NeuralNetwork:
         self.params = {}
         self.grads = {}
 
-        # ----------------------------------------------------
-        # 1층: 784 -> 512
-        # ----------------------------------------------------
-        self.params["W1"] = initializer(784, 512)
-        self.params["b1"] = np.zeros(512)
+        hidden_sizes = [512, 256]
+        prev_size = 784
+        
+        for idx, hidden_size in enumerate(hidden_sizes, start=1):
+            self._add_hidden_layer(
+                layer_idx=idx,
+                input_size=prev_size,
+                output_size=hidden_size,
+                initializer=initializer,
+                use_batchnorm=use_batchnorm,
+                use_dropout=use_dropout,
+                dropout_ratio=dropout_ratio
+            )
+            prev_size = hidden_size
 
-        self.layers["Affine1"] = Affine(self.params["W1"], self.params["b1"],)
+        self._add_output_layer(
+            layer_idx=len(hidden_sizes) + 1,
+            input_size=prev_size,
+            output_size=10,
+            initializer=initializer
+        )
 
-        if use_batchnorm:
-            self.params["gamma1"] = np.ones(512)
-            self.params["beta1"] = np.zeros(512)
-
-            self.layers["BatchNorm1"] = BatchNorm(self.params["gamma1"], self.params["beta1"])
-
-        self.layers["ReLU1"] = ReLU()
-
-        if use_dropout:
-            self.layers["Dropout1"] = Dropout(dropout_ratio)
-
-        # ----------------------------------------------------
-        # 2층: 512 -> 256
-        # ----------------------------------------------------
-
-        self.params["W2"] = initializer(512, 256)
-        self.params["b2"] = np.zeros(256)
-
-        self.layers["Affine2"] = Affine(self.params["W2"], self.params["b2"])
-
-        if use_batchnorm:
-            self.params["gamma2"] = np.ones(256)
-            self.params["beta2"] = np.zeros(256)
-
-            self.layers["BatchNorm2"] = BatchNorm(self.params["gamma2"], self.params["beta2"])
-
-        self.layers["ReLU2"] = ReLU()
-
-        if use_dropout:
-            self.layers["Dropout2"] = Dropout(dropout_ratio)
-
-        # ----------------------------------------------------
-        # 3층 출력층: 256 -> 10
-        # ----------------------------------------------------
-        self.params['W3'] = initializer(256, 10)
-        self.params['b3'] = np.zeros(10)
-        self.layers['Affine3'] = Affine(self.params['W3'], self.params['b3'])
-
-        # ----------------------------------------------------
-        # 마지막 정돈
-        # ----------------------------------------------------
         self.last_layer = Softmax()
+
 
         #raise NotImplementedError("NeuralNetwork.__init__을 구현하세요.")
 
@@ -136,3 +110,51 @@ class NeuralNetwork:
     def predict(self, x):
         """추론 모드로 확률을 예측합니다. BatchNorm/Dropout은 train=False로 동작합니다."""
         return self.forward(x, train=False)
+
+
+    def _add_hidden_layer(self, layer_idx, input_size, output_size, initializer,
+                        use_batchnorm=False, use_dropout=False, dropout_ratio=0.5):
+        """
+        Affine -> BatchNorm(optional) -> ReLU -> Dropout(optional)
+        형태의 hidden layer를 self.params와 self.layers에 추가한다.
+        """
+
+        # W, b 생성
+        self.params[f"W{layer_idx}"] = initializer(input_size, output_size)
+        self.params[f"b{layer_idx}"] = np.zeros(output_size)
+
+        # Affine
+        self.layers[f"Affine{layer_idx}"] = Affine(
+            self.params[f"W{layer_idx}"],
+            self.params[f"b{layer_idx}"]
+        )
+
+        # BatchNorm
+        if use_batchnorm:
+            self.params[f"gamma{layer_idx}"] = np.ones(output_size)
+            self.params[f"beta{layer_idx}"] = np.zeros(output_size)
+
+            self.layers[f"BatchNorm{layer_idx}"] = BatchNorm(
+                self.params[f"gamma{layer_idx}"],
+                self.params[f"beta{layer_idx}"]
+            )
+
+        # ReLU
+        self.layers[f"ReLU{layer_idx}"] = ReLU()
+
+        # Dropout
+        if use_dropout:
+            self.layers[f"Dropout{layer_idx}"] = Dropout(dropout_ratio)
+
+    def _add_output_layer(self, layer_idx, input_size, output_size, initializer):
+        """
+        출력층 Affine layer를 추가한다.
+        """
+
+        self.params[f"W{layer_idx}"] = initializer(input_size, output_size)
+        self.params[f"b{layer_idx}"] = np.zeros(output_size)
+
+        self.layers[f"Affine{layer_idx}"] = Affine(
+            self.params[f"W{layer_idx}"],
+            self.params[f"b{layer_idx}"]
+    )
