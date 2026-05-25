@@ -32,7 +32,10 @@ class NeuralNetwork:
         # TODO: params dict를 만들고 Affine/BatchNorm/ReLU/Dropout layer를 순서대로 구성하세요.
         # 권장 구조: 784 -> 512 -> 256 -> 10
         # self.layers는 OrderedDict로 만들고, self.grads는 params와 같은 key를 갖게 합니다.
-        raise NotImplementedError("NeuralNetwork.__init__을 구현하세요.")
+        self.params = 0
+        self.grads = 0
+        
+        #raise NotImplementedError("NeuralNetwork.__init__을 구현하세요.")
 
     def forward(self, x, train=True):
         """
@@ -44,7 +47,7 @@ class NeuralNetwork:
             (batch_size, 10) 각 숫자 클래스의 확률
         """
         # TODO: self.layers를 순서대로 통과시키고 마지막에 Softmax를 적용하세요.
-        raise NotImplementedError("NeuralNetwork.forward를 구현하세요.")
+        # raise NotImplementedError("NeuralNetwork.forward를 구현하세요.")
 
     def backward(self, dout):
         """

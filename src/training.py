@@ -20,7 +20,43 @@ def train(model, optimizer, x_train, y_train, epochs=20, batch_size=128):
     """
     # TODO: epoch마다 데이터를 섞고, batch 단위로 forward/loss/backward/update를 수행하세요.
     # 힌트: Softmax + CrossEntropy 결합 gradient는 y_pred copy에서 정답 위치에 1을 빼서 만듭니다.
-    raise NotImplementedError("train을 구현하세요.")
+    loss_history = []
+
+    data_size = x_train.shape[0]
+    iter_per_epochs = max(data_size//batch_size, 1)
+
+    for epoch in range(epochs):
+        rand_idx = np.random.permutation(data_size)
+        x_train_shuffled = x_train[rand_idx]
+        y_train_shuffled = y_train[rand_idx]
+        epoch_loss = 0.0
+        for i in range(iter_per_epochs):
+            start_idx = i * batch_size
+            end_idx = start_idx + batch_size
+
+            x_batch = x_train_shuffled[start_idx : end_idx]
+            y_batch = y_train_shuffled[start_idx : end_idx]
+
+            y_pred = model.forward(x_batch, train = True)
+            
+            loss = cross_entropy_loss(y_pred, y_batch)
+            epoch_loss += loss
+
+            dout = y_pred.copy()
+            dout[np.arange(len(x_batch)), y_batch] -= 1
+            dout = dout / len(y_batch)
+
+            model.backward(dout)
+
+            optimizer.update(model.params, model.grads)
+
+        epoch_loss = epoch_loss / iter_per_epochs
+        loss_history.append(epoch_loss)
+
+    return loss_history
+
+
+    #raise NotImplementedError("train을 구현하세요.")
 
 
 def evaluate(model, x, y):
