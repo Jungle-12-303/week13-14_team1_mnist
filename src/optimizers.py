@@ -80,7 +80,7 @@ class Adam:
             self.v[key] = self.v[key] * self.beta2 + (1 - self.beta2) * (grads[key]) ** 2
 
             m_hat = self.m[key] / (1 - self.beta1 ** self.t)
-            v_hat = self.v[key] / (1 - self.beta1 ** self.t)
+            v_hat = self.v[key] / (1 - self.beta2 ** self.t)
             params[key] -= self.lr * m_hat / (np.sqrt(v_hat) + 1e-7)
         
         return
